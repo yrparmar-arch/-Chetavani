@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ચેતવણી તપાસ</title>
+<meta name="theme-color" content="#0F5E63">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@600;700;800&family=Hind+Vadodara:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow working column — input card, then a verdict band, then flags + steps; helpline footer always visible */
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#152322; --muted:#5A6B69; --line:#D6DEDC;
+  --accent:#0F5E63; --accent-soft:#E1EEEE; --on-accent:#FFFFFF;
+  --high:#B42318; --high-soft:#FDECEA; --mid:#B25E09; --mid-soft:#FEF2E2; --low:#1F7A3E; --low-soft:#E5F4EA;
+  --display:"Baloo Bhai 2","Noto Sans Gujarati",system-ui,sans-serif;
+  --body:"Hind Vadodara","Noto Sans Gujarati",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1716; --surface:#172221; --ink:#E6EEEC; --muted:#9DB0AD; --line:#2A3A38;
+  --accent:#5BB8BC; --accent-soft:#18383A; --on-accent:#0B1514;
+  --high:#FF8A7E; --high-soft:#3A1916; --mid:#F5B261; --mid-soft:#3A2810; --low:#6FD48F; --low-soft:#13301D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1716; --surface:#172221; --ink:#E6EEEC; --muted:#9DB0AD; --line:#2A3A38;
+  --accent:#5BB8BC; --accent-soft:#18383A; --on-accent:#0B1514;
+  --high:#FF8A7E; --high-soft:#3A1916; --mid:#F5B261; --mid-soft:#3A2810; --low:#6FD48F; --low-soft:#13301D; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+header h1{font-family:var(--display);font-weight:800;font-size:2rem;line-height:1.15;margin:0;color:var(--accent);text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:600;border:1px solid var(--line);background:transparent;color:var(--muted);padding:6px 14px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.tab:focus-visible,button:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+label.lbl{font-weight:600;font-size:.95rem}
+textarea{font:inherit;width:100%;box-sizing:border-box;min-height:130px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);color:var(--ink)}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop img{max-height:220px;border-radius:8px}
+.hint{font-size:.88rem;color:var(--muted);margin:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font:inherit;font-weight:600;border-radius:10px;padding:10px 18px;cursor:pointer;border:1px solid var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.55;cursor:wait}
+audio{width:100%}
+.verdict{border-radius:14px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:center;border:1px solid transparent}
+.verdict.high{background:var(--high-soft);border-color:var(--high)}
+.verdict.mid{background:var(--mid-soft);border-color:var(--mid)}
+.verdict.low{background:var(--low-soft);border-color:var(--low)}
+.score{font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1;grid-row:span 2;font-variant-numeric:tabular-nums;text-align:center;min-width:3.2ch}
+.score small{display:block;font-size:.75rem;font-family:var(--body);font-weight:600;letter-spacing:.02em}
+.high .score,.high .vt{color:var(--high)} .mid .score,.mid .vt{color:var(--mid)} .low .score,.low .vt{color:var(--low)}
+.vt{font-family:var(--display);font-weight:700;font-size:1.35rem;margin:0;line-height:1.2}
+.vs{margin:0;color:var(--ink)}
+.tag{display:inline-block;font-size:.8rem;font-weight:600;padding:1px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+h2{font-family:var(--display);font-weight:700;font-size:1.2rem;margin:0}
+ul.flags{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+ul.flags li{border-left:4px solid var(--high);padding:2px 0 2px 12px}
+ul.flags li b{display:block}
+ul.flags li q{color:var(--muted);font-size:.92rem}
+ol.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:8px}
+ol.steps li::marker{font-weight:700;color:var(--accent)}
+ul.donts{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.status{font-size:.92rem;color:var(--muted);margin:0;min-height:1.4em}
+.example{font-size:.8rem;font-weight:600;color:var(--mid)}
+.help{background:var(--accent);color:var(--on-accent);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.help .big{font-family:var(--display);font-weight:800;font-size:2rem;line-height:1}
+.help a{color:inherit}
+.help p{margin:0}
+footer{font-size:.82rem;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.fade{animation:f .35s ease-out}@keyframes f{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+
+*{box-sizing:border-box}
+html{color-scheme:light}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+input[type=password]{font:inherit;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);color:var(--ink)}
+details summary{cursor:pointer;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details[open]{gap:12px}
+details:not([open]){gap:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ચેતવણી તપાસ</h1>
+    <p>શંકાસ્પદ મેસેજ, સ્ક્રીનશૉટ કે વૉઇસ નોટ આપો. જોખમનાં ચિહ્નો અને ચકાસણીનું આગળનું પગલું ગુજરાતીમાં મળશે.</p>
+  </header>
+  <details class="card" id="settings">
+    <summary><b>સેટિંગ</b> <span class="hint" id="keyState"></span></summary>
+    <label class="lbl" for="apiKey">Claude API key</label>
+    <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-...">
+    <p class="hint">Key ફક્ત આ ફોનમાં સચવાય છે. Key વગર પણ એપ નિયમ આધારિત તપાસ કરશે, પણ સ્ક્રીનશૉટ વાંચવા AI જરૂરી છે. ટેસ્ટિંગ માટે જ — આ key બીજાને ન આપો.</p>
+    <div class="row"><button class="btn primary" id="saveKey">સાચવો</button><button class="btn ghost" id="delKey">key કાઢો</button></div>
+  </details>
+
+  <section class="card" aria-label="ઇનપુટ">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-text" aria-selected="true" data-p="p-text">મેસેજ</button>
+      <button class="tab" role="tab" id="t-img" aria-selected="false" data-p="p-img">સ્ક્રીનશૉટ</button>
+      <button class="tab" role="tab" id="t-voice" aria-selected="false" data-p="p-voice">વૉઇસ નોટ</button>
+    </div>
+
+    <div id="p-text" class="panel">
+      <label class="lbl" for="msg">મેસેજ અહીં પેસ્ટ કરો <span class="example" id="exTag">· ઉદાહરણ</span></label>
+      <textarea id="msg"></textarea>
+    </div>
+
+    <div id="p-img" class="panel" hidden>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="સ્ક્રીનશૉટ પસંદ કરો">
+        <span id="dropTxt">સ્ક્રીનશૉટ અહીં મૂકો અથવા ટૅપ કરી પસંદ કરો</span>
+        <img id="preview" alt="પસંદ કરેલ સ્ક્રીનશૉટ" hidden>
+      </div>
+      <input type="file" id="imgFile" accept="image/png,image/jpeg,image/webp" hidden>
+      <p class="hint" id="imgHint">WhatsApp, SMS કે ઇમેઇલનો સ્ક્રીનશૉટ ચાલશે. ફોટામાંનો લખાણ AI વાંચશે.</p>
+      <label class="lbl" for="imgNote">વધારાની વિગત (વૈકલ્પિક)</label>
+      <textarea id="imgNote" style="min-height:70px" placeholder="દા.ત. અજાણ્યા નંબર પરથી આવ્યો છે"></textarea>
+    </div>
+
+    <div id="p-voice" class="panel" hidden>
+      <input type="file" id="audFile" accept="audio/*" hidden>
+      <div class="row"><button class="btn ghost" id="audPick">વૉઇસ નોટ ફાઇલ પસંદ કરો</button><span class="hint" id="audName"></span></div>
+      <audio id="aud" controls hidden></audio>
+      <p class="hint">ફાઇલ અહીં વગાડી સાંભળો અને જે કહ્યું તે નીચે લખો — મુખ્ય વાક્યો પૂરતાં છે. અથવા "બોલીને લખો" દબાવી વૉઇસ નોટ સ્પીકર પર વગાડો — ફોન ગુજરાતી લખાણ જાતે લખશે.</p>
+      <div class="row"><label class="lbl" for="voiceText">વૉઇસ નોટમાં શું કહ્યું?</label><button class="btn ghost" id="mic" hidden>🎙 બોલીને લખો</button></div>
+      <textarea id="voiceText" placeholder="દા.ત. હું પોલીસમાંથી બોલું છું, તમારા નામે પાર્સલમાં ડ્રગ્સ મળ્યા છે..."></textarea>
+    </div>
+
+    <div class="row">
+      <button class="btn primary" id="go">તપાસ કરો</button>
+      <button class="btn ghost" id="clear">સાફ કરો</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+
+  <section id="result" aria-live="polite"></section>
+
+  <section class="help" aria-label="મદદ">
+    <p>પૈસા ગયા હોય તો તરત ફોન કરો</p>
+    <p class="big">1930</p>
+    <p>રાષ્ટ્રીય સાયબર ક્રાઇમ હેલ્પલાઇન · ઑનલાઇન ફરિયાદ: <a href="https://cybercrime.gov.in" target="_blank" rel="noopener">cybercrime.gov.in</a></p>
+    <p>શંકાસ્પદ કૉલ/મેસેજની જાણ: <a href="https://sancharsaathi.gov.in" target="_blank" rel="noopener">sancharsaathi.gov.in</a> (ચક્ષુ)</p>
+  </section>
+
+  <footer>આ સાધન માર્ગદર્શન આપે છે, અંતિમ નિર્ણય નહીં. શંકા હોય તો બૅન્ક કે સંસ્થાનો સત્તાવાર નંબર જાતે શોધીને જ સંપર્ક કરો.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const EXAMPLE = "પ્રિય ગ્રાહક, તમારું SBI ખાતું આજે રાત્રે 12 વાગ્યે બ્લોક થઈ જશે. તરત KYC અપડેટ કરો: http://sbi-kyc-update.in/verify  OTP કોઈને ન આપશો સિવાય અમારા એક્ઝિક્યુટિવને. - SBI";
+let imgBlob = null, mode = "p-text";
+const MODEL = "claude-sonnet-5-5";
+const store = { get(k){ try{return localStorage.getItem(k)||"";}catch{return "";} }, set(k,v){ try{ v?localStorage.setItem(k,v):localStorage.removeItem(k);}catch{} } };
+function hasKey(){ return !!store.get("ck_key"); }
+function showKeyState(){ $("keyState").textContent = hasKey() ? "· AI ચાલુ" : "· AI બંધ (key નાખો)"; }
+async function askClaude(prompt, img){
+  const content = [];
+  if (img) {
+    const b64 = await new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = bad; r.readAsDataURL(img); });
+    content.push({type:"image", source:{type:"base64", media_type: img.type || "image/jpeg", data:b64}});
+  }
+  content.push({type:"text", text: prompt + "\n\nફક્ત JSON આપો, બીજું કંઈ નહીં."});
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"content-type":"application/json","x-api-key":store.get("ck_key"),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body: JSON.stringify({model:MODEL, max_tokens:2000, messages:[{role:"user", content}]})
+  });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw {code: res.status===401?"bad_key":res.status===429?"rate_limited":"upstream_error", message:e?.error?.message}; }
+  const data = await res.json();
+  const txt = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+  const m = txt.match(/\{[\s\S]*\}/);
+  if (!m) throw {code:"invalid_json"};
+  try { return JSON.parse(m[0]); } catch { throw {code:"invalid_json"}; }
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+  document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== t.dataset.p);
+  mode = t.dataset.p;
+});
+
+/* ---------- Image input ---------- */
+const drop = $("drop"), imgFile = $("imgFile");
+drop.onclick = () => imgFile.click();
+drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); imgFile.click(); } };
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer.files[0]) setImg(e.dataTransfer.files[0]); };
+imgFile.onchange = () => imgFile.files[0] && setImg(imgFile.files[0]);
+document.addEventListener("paste", e => {
+  const f = [...(e.clipboardData?.files || [])].find(f => f.type.startsWith("image/"));
+  if (f) { $("t-img").click(); setImg(f); }
+});
+function setImg(f) {
+  if (!f.type.startsWith("image/")) { say("કૃપા કરી PNG, JPG કે WebP ફોટો પસંદ કરો."); return; }
+  imgBlob = f;
+  const p = $("preview"); p.src = URL.createObjectURL(f); p.hidden = false;
+  $("dropTxt").textContent = "બીજો સ્ક્રીનશૉટ પસંદ કરવા ટૅપ કરો";
+}
+
+/* ---------- Audio input ---------- */
+$("audPick").onclick = () => $("audFile").click();
+$("audFile").onchange = () => {
+  const f = $("audFile").files[0]; if (!f) return;
+  const a = $("aud"); a.src = URL.createObjectURL(f); a.hidden = false;
+  $("audName").textContent = f.name;
+};
+
+/* ---------- Local rule engine (works without AI) ---------- */
+const RULES = [
+  {re:/otp|ઓટીપી|ओटीपी|one.?time.?pass|પિન|\bpin\b|cvv/i, w:30, f:"OTP / PIN / CVV માંગવામાં આવે છે", why:"કોઈ સાચી બૅન્ક કે કંપની ક્યારેય OTP, PIN કે CVV માંગતી નથી."},
+  {re:/kyc|કેવાયસી|केवाईसी|pan.?card|aadhaar|આધાર|आधार/i, w:15, f:"KYC / આધાર / PAN અપડેટના નામે દબાણ", why:"KYC અપડેટ ફક્ત બૅન્ક શાખા કે સત્તાવાર ઍપથી થાય છે, મેસેજની લિંકથી નહીં."},
+  {re:/https?:\/\/|www\.|bit\.ly|tinyurl|\.apk\b|[a-z0-9-]+\.(in|com|xyz|top|info|link|online|site)\b/i, w:20, f:"અજાણી લિંક કે ફાઇલ", why:"ઠગ સાચી કંપની જેવું લાગતું પણ અલગ સરનામું વાપરે છે. .apk ફાઇલ ફોનનો કબજો લઈ શકે."},
+  {re:/block|બ્લોક|बंद|suspend|બંધ થ|deactivat|આજે રાત્રે|તરત|immediately|urgent|24 ?(hrs|hours|કલાક)|તાત્કાલિક/i, w:20, f:"ઉતાવળ કે ધમકી", why:"‘તરત કરો નહીં તો બંધ’ જેવો દબાવ વિચારવાનો સમય છીનવવા માટે હોય છે."},
+  {re:/lottery|લોટરી|લકી ડ્રો|lucky draw|won|જીત્યા|इनाम|ઇનામ|prize|cashback|કૅશબૅક|gift/i, w:20, f:"ઇનામ / લોટરી / કૅશબૅકની લાલચ", why:"જે સ્પર્ધામાં ભાગ લીધો જ નથી તેનું ઇનામ મળતું નથી."},
+  {re:/police|પોલીસ|cbi|ed\b|customs|કસ્ટમ|narcotic|ડ્રગ્સ|drugs|digital arrest|ડિજિટલ અરેસ્ટ|arrest|ધરપકડ|court|કોર્ટ/i, w:30, f:"પોલીસ / CBI / કસ્ટમ્સ નામે ડર", why:"‘ડિજિટલ અરેસ્ટ’ જેવી કોઈ કાનૂની પ્રક્રિયા નથી. એજન્સીઓ વીડિયો કૉલ પર પૂછપરછ કે પૈસા માંગતી નથી."},
+  {re:/upi|gpay|phonepe|paytm|collect request|qr|સ્કેન|scan|pay ₹|₹ ?\d|rs\.? ?\d|refund|રિફંડ/i, w:15, f:"UPI / QR / પૈસા મોકલવાની માંગ", why:"પૈસા મેળવવા માટે ક્યારેય PIN નાખવો કે QR સ્કેન કરવો પડતો નથી."},
+  {re:/anydesk|teamviewer|quicksupport|screen share|સ્ક્રીન શેર|remote/i, w:30, f:"રિમોટ ઍક્સેસ ઍપ ઇન્સ્ટોલ કરાવવી", why:"આવી ઍપથી ઠગ તમારો ફોન જાતે ચલાવી શકે છે."},
+  {re:/work from home|ઘરેથી કામ|part.?time|like.*youtube|task|ટાસ્ક|daily income|દરરોજ ₹|invest|ઇન્વેસ્ટ|double|ડબલ|trading|ટ્રેડિંગ|crypto/i, w:20, f:"સરળ કમાણી / રોકાણની ઑફર", why:"ઓછા કામમાં ઊંચી કમાણી કે ગૅરંટીડ વળતર ઠગાઈનું સામાન્ય ચિહ્ન છે."},
+  {re:/electricity|વીજળી|બિજલી|bill|બિલ|connection.*cut|કનેક્શન/i, w:15, f:"વીજળી બિલ / કનેક્શન કાપવાની ધમકી", why:"વીજ કંપનીઓ વ્યક્તિગત નંબર પરથી મેસેજ કરી તરત ચુકવણી માંગતી નથી."},
+  {re:/don'?t tell|કોઈને કહેશો નહીં|કોઈને ન કહો|secret|ગુપ્ત/i, w:15, f:"ગુપ્ત રાખવાનું કહે છે", why:"પરિવાર કે બૅન્કથી છુપાવવાનું કહેવું એ મોટું ખતરાનું ચિહ્ન છે."},
+  {re:/hi (mom|mum|dad)|મમ્મી.*નવો નંબર|new number|નવો નંબર|ફોન બગડી ગયો|emergency|ઇમરજન્સી|hospital|હૉસ્પિટલ/i, w:15, f:"ઓળખીતા હોવાનો દાવો / ઇમરજન્સી", why:"જૂના નંબર પર સીધો ફોન કરી ખાતરી કરો."}
+];
+function localAnalyze(text) {
+  const flags = [];
+  let score = 0;
+  RULES.forEach(r => { const m = text.match(r.re); if (m) { score += r.w; flags.push({flag:r.f, evidence:m[0], why:r.why}); } });
+  score = Math.min(100, score);
+  const level = score >= 55 ? "high" : score >= 25 ? "mid" : "low";
+  return {
+    level, score, scam_type: flags[0]?.flag ? guessType(flags) : "સ્પષ્ટ ઠગાઈનો પ્રકાર મળ્યો નથી",
+    summary: level === "high" ? "આ મેસેજમાં ઠગાઈનાં ઘણાં જાણીતાં ચિહ્નો છે." : level === "mid" ? "કેટલાંક શંકાસ્પદ ચિહ્નો છે, આગળ વધતા પહેલાં ચકાસો." : "નિયમોમાં ખાસ ખતરો દેખાયો નથી, છતાં સાવચેત રહો.",
+    red_flags: flags.map(f => ({flag:f.flag, evidence:f.evidence, why:f.why})),
+    next_steps: stepsFor(level, flags),
+    do_not: ["લિંક પર ક્લિક ન કરો કે ફાઇલ ડાઉનલોડ ન કરો.", "OTP, PIN, CVV કે પાસવર્ડ કોઈને ન આપો.", "મેસેજમાં આપેલા નંબર પર પાછો ફોન ન કરો."]
+  };
+}
+function guessType(flags) {
+  const t = flags.map(f => f.flag).join(" ");
+  if (/પોલીસ/.test(t)) return "ડિજિટલ અરેસ્ટ / સરકારી અધિકારીના નામે ઠગાઈ";
+  if (/KYC/.test(t)) return "બૅન્ક KYC ઠગાઈ";
+  if (/ઇનામ/.test(t)) return "લોટરી / ઇનામ ઠગાઈ";
+  if (/કમાણી/.test(t)) return "નોકરી / રોકાણ ઠગાઈ";
+  if (/વીજળી/.test(t)) return "વીજળી બિલ ઠગાઈ";
+  if (/રિમોટ/.test(t)) return "રિમોટ ઍક્સેસ ઠગાઈ";
+  if (/ઓળખીતા/.test(t)) return "ઓળખીતા બનીને પૈસા માંગવા";
+  return "ફિશિંગ (માહિતી ચોરવાનો પ્રયાસ)";
+}
+function stepsFor(level, flags) {
+  const s = [];
+  if (level !== "low") s.push("મેસેજનો જવાબ ન આપો. સંસ્થાનો સત્તાવાર નંબર તેની વેબસાઇટ, કાર્ડની પાછળ કે પાસબુકમાંથી જાતે શોધી ખાતરી કરો.");
+  if (flags.some(f => /લિંક/.test(f.flag))) s.push("લિંકનું ડોમેન ધ્યાનથી જુઓ — સાચી બૅન્કનું સરનામું (દા.ત. onlinesbi.sbi) જ હોય. શંકા હોય તો ખોલશો નહીં.");
+  if (flags.some(f => /પોલીસ/.test(f.flag))) s.push("કૉલ તરત કાપો. નજીકના પોલીસ સ્ટેશનમાં કે 1930 પર જાતે ફોન કરી ખાતરી કરો.");
+  if (flags.some(f => /ઓળખીતા/.test(f.flag))) s.push("એ વ્યક્તિના જૂના નંબર પર ફોન કરી કે રૂબરૂ પૂછીને ખાતરી કરો.");
+  s.push("Sanchar Saathi પર ‘ચક્ષુ’માં આ નંબર/મેસેજની જાણ કરો અને નંબર બ્લોક કરો.");
+  s.push("જો પૈસા ગયા હોય કે OTP આપી દીધો હોય તો તરત 1930 પર ફોન કરો અને બૅન્કને કાર્ડ/UPI બંધ કરાવવા કહો.");
+  return s;
+}
+
+/* ---------- AI analysis ---------- */
+const PROMPT = (content, hasImg) => `તમે ભારતમાં ઓનલાઇન ઠગાઈ ઓળખતા નિષ્ણાત છો. નીચેનો ${hasImg ? "સ્ક્રીનશૉટ (ફોટામાંનું લખાણ વાંચો) અને વિગત" : "મેસેજ/વૉઇસ નોટનું લખાણ"} તપાસો.
+જોખમનાં ચિહ્નો શોધો (ઉતાવળ, OTP/PIN માંગ, શંકાસ્પદ લિંક કે ડોમેન, ખોટી ઓળખ, ઇનામની લાલચ, ધમકી, ડિજિટલ અરેસ્ટ, UPI collect, રિમોટ ઍપ, નોકરી/રોકાણ ઠગાઈ, મોકલનારનો નંબર વગેરે).
+ફક્ત આ આકારનું JSON આપો, બધું લખાણ સરળ ગુજરાતીમાં:
+{"level":"high|mid|low","score":0-100,"scam_type":"ટૂંકું નામ","summary":"એક વાક્ય","red_flags":[{"flag":"ચિહ્ન","evidence":"મેસેજમાંથી ટૂંકો અંશ","why":"કેમ ખતરનાક"}],"next_steps":["ક્રમવાર ચકાસણીનું પગલું"],"do_not":["શું ન કરવું"]}
+next_steps 3-5 વ્યવહારુ પગલાં: સત્તાવાર નંબર જાતે શોધી ખાતરી, ડોમેન તપાસ, Sanchar Saathi ચક્ષુમાં જાણ, પૈસા ગયા હોય તો 1930. જો મેસેજ સુરક્ષિત લાગે તો level "low" અને તે સ્પષ્ટ કહો. ખાતરી ન હોય તો ખોટી ખાતરી ન આપો.
+
+--- તપાસવાનું લખાણ ---
+${content || "(ફક્ત સ્ક્રીનશૉટ)"}`;
+
+function getInput() {
+  if (mode === "p-text") return {text: $("msg").value.trim(), img: null};
+  if (mode === "p-img") return {text: $("imgNote").value.trim(), img: imgBlob};
+  return {text: $("voiceText").value.trim(), img: null};
+}
+function say(t) { $("status").textContent = t; }
+
+$("go").onclick = async () => {
+  const {text, img} = getInput();
+  if (!text && !img) { say(mode === "p-img" ? "પહેલાં સ્ક્રીનશૉટ પસંદ કરો." : mode === "p-voice" ? "વૉઇસ નોટમાં શું કહ્યું તે લખો." : "પહેલાં મેસેજ પેસ્ટ કરો."); return; }
+  if (!hasKey()) {
+    if (img && !text) { say("સ્ક્રીનશૉટ વાંચવા સેટિંગમાં Claude API key નાખો, અથવા ફોટામાંનું લખાણ ‘મેસેજ’ ટૅબમાં લખો."); $("settings").open = true; return; }
+    render(localAnalyze(text), "નિયમ આધારિત તપાસ"); say("AI key નથી, તેથી નિયમ આધારિત તપાસ બતાવી છે."); return;
+  }
+  const btn = $("go"); btn.disabled = true; say("તપાસ ચાલુ છે…");
+  try {
+    const r = await askClaude(PROMPT(text, !!img), img);
+    if (!r || !Array.isArray(r.red_flags)) throw {code:"invalid_json"};
+    render(r, "AI તપાસ"); say("");
+  } catch (e) {
+    if (text) render(localAnalyze(text), "નિયમ આધારિત તપાસ");
+    say(({
+      bad_key:"API key ખોટી છે. સેટિંગમાં સાચી key નાખો.",
+      rate_limited:"હાલ ઘણી વિનંતીઓ થઈ છે. થોડી વાર પછી ફરી પ્રયાસ કરો.",
+      invalid_json:"AIનો જવાબ સમજાયો નહીં. ફરી ‘તપાસ કરો’ દબાવો."
+    })[e?.code] || (navigator.onLine === false ? "ઇન્ટરનેટ નથી. નિયમ આધારિત તપાસ બતાવી છે." : (text ? "AI તપાસ અધૂરી રહી, નિયમ આધારિત તપાસ બતાવી છે." : "તપાસ થઈ શકી નહીં. ફરી પ્રયાસ કરો.")));
+  } finally { btn.disabled = false; }
+};
+
+/* ---------- Settings ---------- */
+$("saveKey").onclick = () => { const v = $("apiKey").value.trim(); if (!v.startsWith("sk-")) { say("key ‘sk-’થી શરૂ થવી જોઈએ."); return; } store.set("ck_key", v); $("apiKey").value = ""; showKeyState(); $("settings").open = false; say("Key સાચવી. હવે AI તપાસ ચાલુ છે."); };
+$("delKey").onclick = () => { store.set("ck_key", ""); showKeyState(); say("Key કાઢી નાખી."); };
+
+/* ---------- Gujarati dictation ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SR) {
+  const mic = $("mic"); mic.hidden = false; let rec = null;
+  mic.onclick = () => {
+    if (rec) { rec.stop(); return; }
+    rec = new SR(); rec.lang = "gu-IN"; rec.continuous = true; rec.interimResults = false;
+    const base = $("voiceText").value;
+    let said = "";
+    rec.onresult = ev => { for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) said += ev.results[i][0].transcript + " "; $("voiceText").value = (base ? base + " " : "") + said.trim(); };
+    rec.onerror = ev => say(ev.error === "not-allowed" ? "માઇકની મંજૂરી આપો." : "અવાજ ઓળખાયો નહીં, ફરી પ્રયાસ કરો.");
+    rec.onend = () => { rec = null; mic.textContent = "🎙 બોલીને લખો"; };
+    rec.start(); mic.textContent = "⏹ બંધ કરો"; say("સાંભળું છું… વૉઇસ નોટ વગાડો કે બોલો.");
+  };
+}
+
+$("clear").onclick = () => {
+  ["msg","imgNote","voiceText"].forEach(id => $(id).value = "");
+  imgBlob = null; $("preview").hidden = true; $("dropTxt").textContent = "સ્ક્રીનશૉટ અહીં મૂકો અથવા ટૅપ કરી પસંદ કરો";
+  $("exTag").hidden = true; $("result").innerHTML = ""; say("");
+};
+$("msg").addEventListener("input", () => $("exTag").hidden = true);
+
+/* ---------- Render ---------- */
+const LV = {high:"ઊંચું જોખમ", mid:"મધ્યમ જોખમ", low:"ઓછું જોખમ"};
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k, v]) => k === "class" ? e.className = v : e.setAttribute(k, v));
+  kids.flat().forEach(k => k != null && e.append(k));
+  return e;
+}
+function render(r, source, isExample) {
+  const lv = ["high","mid","low"].includes(r.level) ? r.level : "mid";
+  const score = Math.max(0, Math.min(100, Number(r.score) || 0));
+  const out = $("result"); out.innerHTML = "";
+  const box = el("div", {class:"fade", style:"display:flex;flex-direction:column;gap:18px"});
+  box.append(el("div", {class:"verdict " + lv},
+    el("div", {class:"score"}, String(score), el("small", {}, "/ 100")),
+    el("p", {class:"vt"}, LV[lv]),
+    el("div", {}, el("p", {class:"vs"}, String(r.summary || "")),
+      el("p", {style:"margin:6px 0 0;display:flex;gap:6px;flex-wrap:wrap"},
+        el("span", {class:"tag"}, String(r.scam_type || "")),
+        el("span", {class:"tag"}, source),
+        isExample ? el("span", {class:"tag example"}, "ઉદાહરણ") : null))));
+  const flags = Array.isArray(r.red_flags) ? r.red_flags : [];
+  const fc = el("div", {class:"card"}, el("h2", {}, "જોખમનાં ચિહ્નો (" + flags.length + ")"));
+  fc.append(flags.length ? el("ul", {class:"flags"}, flags.map(f => el("li", {},
+      el("b", {}, String(f.flag || "")),
+      f.evidence ? el("q", {}, String(f.evidence)) : null,
+      f.why ? el("div", {}, String(f.why)) : null)))
+    : el("p", {class:"hint"}, "કોઈ સ્પષ્ટ ચિહ્ન મળ્યું નથી."));
+  box.append(fc);
+  const steps = Array.isArray(r.next_steps) ? r.next_steps : [];
+  box.append(el("div", {class:"card"}, el("h2", {}, "ચકાસણીનું આગળનું પગલું"),
+    el("ol", {class:"steps"}, steps.map(s => el("li", {}, String(s))))));
+  const dn = Array.isArray(r.do_not) ? r.do_not : [];
+  if (dn.length) box.append(el("div", {class:"card"}, el("h2", {}, "આ ન કરો"),
+    el("ul", {class:"donts"}, dn.map(s => el("li", {}, String(s))))));
+  out.append(box);
+}
+
+/* ---------- Boot ---------- */
+$("msg").value = EXAMPLE;
+render(localAnalyze(EXAMPLE), "નિયમ આધારિત તપાસ", true);
+showKeyState();
+$("imgHint").textContent = "WhatsApp, SMS કે ઇમેઇલનો સ્ક્રીનશૉટ ચાલશે. ફોટામાંનું લખાણ AI વાંચશે (સેટિંગમાં key જરૂરી).";
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
